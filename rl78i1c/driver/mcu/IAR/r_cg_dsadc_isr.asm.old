@@ -1,0 +1,27 @@
+#include "ior5f10npj_ext.h"
+  
+    EXTERN _r_dsadc_interrupt
+
+/* Assign the function to interrupt vector table */
+    ASEGN  .intvec:CONST:ROOT,044H
+    DATA16
+    DW    _r_dsadc_interrupt_asm
+    
+/* Interrupt handling function, must be in near ROM region */
+    RSEG .text:CODE:ROOT(0)
+
+_r_dsadc_interrupt_asm:
+
+    SEL     RB3
+    MOV     A, CS
+    PUSH    AX
+    
+    CALL    F:_r_dsadc_interrupt
+    
+    SET1    DTCEN1.5
+
+    POP     AX
+    MOV     CS, A
+    RETI
+  
+    END  

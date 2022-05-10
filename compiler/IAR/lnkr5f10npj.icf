@@ -1,0 +1,205 @@
+//-------------------------------------------------------------------------
+//      ILINK command file template for RL78 microcontroller R5F10NPJ.
+//
+//      This file can be used to link object files from the RL78
+//      Assembler, IASMRL78, and the C/C++ compiler ICCRL78.
+//
+//          This file is generated from the device file:
+//          DR5F10NPJ.DVF
+//          Copyright(C) 2017 Renesas
+//
+//          Core type: s3
+//
+//          Format version 3.00, File version 1.01 
+//-------------------------------------------------------------------------
+
+//******************************************************************************
+// DISCLAIMER
+// This software is supplied by Renesas Electronics Corporation and is only
+// intended for use with Renesas products. No other uses are authorized. This
+// software is owned by Renesas Electronics Corporation and is protected under
+// all applicable laws, including copyright laws.
+// THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING
+// THIS SOFTWARE, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING BUT NOT
+// LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+// AND NON-INFRINGEMENT. ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED.
+// TO THE MAXIMUM EXTENT PERMITTED NOT PROHIBITED BY LAW, NEITHER RENESAS
+// ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES SHALL BE LIABLE
+// FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR
+// ANY REASON RELATED TO THIS SOFTWARE, EVEN IF RENESAS OR ITS AFFILIATES HAVE
+// BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+// Renesas reserves the right, without notice, to make changes to this software
+// and to discontinue the availability of this software. By using this software,
+// you agree to the additional terms and conditions found by accessing the
+// following link:
+// http://www.renesas.com/disclaimer
+//
+// Copyright (C) 2015 Renesas Electronics Corporation. All rights reserved.
+//*******************************************************************************
+// CAUTIONS:
+//   1.  Do not locate any function arguments, data buffers for FDL or stack
+//       to the short address area from 0xFFE20 to 0xFFEDF.
+//   2.  It is not allowed to locate any arguments and stack memory
+//       to the self-RAM area.
+//       For the RAM areas used by the flash library for the given 
+//       microcontroller, please consult "Self RAM list of Flash Self-Programming
+//       Library for RL78 Family" (R20UT2943(JPN), R20UT2944(ENG))
+//   3.  Please also consider further restrictions regarding memory sections 
+//       for your target microcontroller (e.g. for on-chip debugging and
+//       the mirror area). 
+//       For details, please consult the "User's Manual: Hardware" of your target
+//       microcontroller.
+//
+// SECTIONS:
+//   1.  PFDL_COD: contain the actual library code 
+//       Library sections are not mapped across any boundary of 64KB Flash page.
+//*******************************************************************************
+
+define exported symbol __link_file_version_2 = 1;
+initialize by copy with simple ranges, packing = auto { rw, R_DATA, R_BSS, R_DATAF, R_BSSF, R_SDATA, R_SBSS  };
+initialize manually { R_CONST, ro section .const, ro section .switch };
+do not initialize   { section *.noinit };
+
+define memory mem with size = 1M;
+
+
+// Set the symbol __RESERVE_OCD_ROM to 1 to reserve the OCD area for debugging.
+// IDE: Symbol can be defined within the project settings here:
+//      "Project"-->"Options..."->"Linker"-->"Config"-->"Configuration file symbol definitions"
+//      Symbol definition: __RESERVE_OCD_ROM=1
+// Command line: --config_def __RESERVE_OCD_ROM=1
+
+if (isdefinedsymbol(__RESERVE_OCD_ROM))
+{
+  if (__RESERVE_OCD_ROM == 1)
+  {
+    define region OCD_ROM_AREA = mem:[from 0x3FE00 size 0x0200];
+  }
+  else
+  {
+    define region OCD_ROM_AREA = mem:[from 0x0 size 0];
+  }
+}
+else
+{
+  define region OCD_ROM_AREA = mem:[from 0x0 size 0];
+}
+define region DTC_T01_TRIGGER = mem:[from 0x02000 size 2];
+
+// Set the symbol __RESERVE_OCD_TRACE_RAM to 1 to reserve the OCD trace ram area for debugging.
+// IDE: Symbol can be defined within the project settings here:
+//      "Project"-->"Options..."->"Linker"-->"Config"-->"Configuration file symbol definitions"
+//      Symbol definition: __RESERVE_OCD_TRACE_RAM=1
+// Command line: --config_def __RESERVE_OCD_TRACE_RAM=1
+
+if (isdefinedsymbol(__RESERVE_OCD_TRACE_RAM))
+{
+  if (__RESERVE_OCD_TRACE_RAM == 1)
+  {
+    define region OCD_TRACE_RAM = mem:[from 0xFC300 size 0x0400];
+  }
+  else
+  {
+    define region OCD_TRACE_RAM = mem:[from 0x0 size 0];
+  }
+}
+else
+{
+  define region OCD_TRACE_RAM = mem:[from 0x0 size 0];
+}
+
+define region HOTPLUGIN_RAM = mem:[from 0x0 size 0];
+define region EXCLUDE_SELF_RAM = mem:[from 0xFBF00 to 0xFBF87];
+define region ADC_BUFFER_RAM = mem:[from 0xFC400 size 0x10];
+define region DTC_CONFIG_RAM = mem:[from 0xFFD00 size 0x50];
+
+define region EXLUDE_ROM_REGION = OCD_ROM_AREA | DTC_T01_TRIGGER;
+define region EXLUDE_RAM_REGION = HOTPLUGIN_RAM | OCD_TRACE_RAM | EXCLUDE_SELF_RAM |
+                                  ADC_BUFFER_RAM | DTC_CONFIG_RAM ;
+
+define region ROM_near = mem:[from 0x000D8 to 0x0FFFF] - EXLUDE_ROM_REGION;
+define region ROM_far  = mem:[from 0x000D8 to 0x0FFFF] | mem:[from 0x10000 to 0x1FFFF] | mem:[from 0x20000 to 0x2FFFF] | mem:[from 0x30000 to 0x3FFFF] - EXLUDE_ROM_REGION;
+define region ROM_huge = mem:[from 0x000D8 to 0x3FFFF] - EXLUDE_ROM_REGION;
+define region SADDR    = mem:[from 0xFFE20 to 0xFFEDF] - EXLUDE_RAM_REGION;
+define region RAM_near = mem:[from 0xFBF00 to 0xFFE1F] - EXLUDE_RAM_REGION;
+define region RAM_far  = mem:[from 0xFBF00 to 0xFFE1F] - EXLUDE_RAM_REGION;
+define region RAM_huge = mem:[from 0xFBF00 to 0xFFE1F] - EXLUDE_RAM_REGION;
+define region VECTOR   = mem:[from 0x00000 to 0x0007F];
+define region CALLT    = mem:[from 0x00080 to 0x000BF];
+define region EEPROM   = mem:[from 0xF1000 to 0xF17FF];
+
+define block NEAR_HEAP  with alignment = 2, size = _NEAR_HEAP_SIZE {  };
+define block FAR_HEAP   with alignment = 2, size = _FAR_HEAP_SIZE {  };
+define block HUGE_HEAP  with alignment = 2, size = _HUGE_HEAP_SIZE {  };
+define block CSTACK     with alignment = 2, size = _STACK_SIZE { rw section CSTACK };
+define block INIT_ARRAY with alignment = 2, fixed order { ro section .preinit_array,
+                                                          ro section .init_array };
+define block MIRROR_ROM with maximum size = _NEAR_CONST_LOCATION_SIZE { ro R_CONST_init,
+                                                                        ro section .const_init,
+                                                                        ro section .switch_init };
+define block MIRROR_RAM with maximum size = _NEAR_CONST_LOCATION_SIZE { rw R_CONST,
+                                                                        rw section .const,
+                                                                        rw section .switch };
+define block OPT_BYTE with size = 4  { R_OPT_BYTE,
+                                       ro section .option_byte,
+                                       ro section OPTBYTE };
+define block SECUR_ID with size = 10 { R_SECUR_ID,
+                                       ro section .security_id,
+                                       ro section SECUID };
+
+
+place at address mem:0x00000       { ro section .reset };
+place at address mem:0x00004       { ro section .intvec };
+place at address mem:0x000C0       { block OPT_BYTE };
+place at address mem:0x000C4       { block SECUR_ID };
+place at address mem:0x02000       { ro section T01_Trigger }; 
+place at address mem:((_NEAR_CONST_LOCATION_START+2)          ) { block MIRROR_ROM };
+place at address mem:((_NEAR_CONST_LOCATION_START+2) | 0xF0000) { block MIRROR_RAM };
+place at address mem:0xFC400       { rw section ADC_Data };
+place at address mem:0xFFD00       { rw section DTC_Vect };
+place at address mem:0xFFD40       { rw section DTCD0 };
+place at address mem:0xFFD48       { rw section DTCD1 };
+
+"CALLT":place in CALLT             { R_CALLT0, ro section .callt0 };
+
+"ROMNEAR":place in ROM_near        { R_TEXT, ro section .text};
+
+"ROMFAR":place in ROM_far          { block INIT_ARRAY,
+                                     R_TEXTF_UNIT64KP,
+                                     ro section .textf_unit64kp,
+                                     ro section PFDL_COD,
+                                     ro section .constf,
+                                     ro section .switchf,
+                                     ro };
+
+"ROMHUGE":place in ROM_huge        { ro section .consth,
+                                     R_TEXTF,
+                                     ro section .textf };
+
+"RAMNEAR":place in RAM_near        { block NEAR_HEAP,
+                                     block CSTACK,
+                                     zi section .iar.dynexit,
+                                     R_DATA,
+                                     rw section .data,
+                                     R_BSS,
+                                     rw section .bss*,
+                                     rw };
+
+"RAMFAR":place in RAM_far          { block FAR_HEAP,
+                                     R_DATAF,
+                                     rw section .dataf,
+                                     rw section .data_unit64kp,
+                                     rw section .bss_unit64kp,
+                                     R_BSSF,
+                                     rw section .bssf* };
+
+"RAMHUGE":place in RAM_huge        { block HUGE_HEAP,
+                                     rw section .hdata,
+                                     rw section .hbss* };
+
+"SADDRMEM":place in SADDR          { rw section .sdata,
+                                     R_SDATA,
+                                     rw section .sbss*,
+                                     R_SBSS,
+                                     rw section .wrkseg };
+
